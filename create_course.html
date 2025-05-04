@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Create Course{% endblock %}
+
+{% block content %}
+<h1>Create a New Course</h1>
+
+<form method="post">
+  <div class="form-group">
+    <label for="title">Course Title</label>
+    <input type="text" class="form-control" id="title" name="title"
+           placeholder="e.g., Intro to Python" required autofocus>
+  </div>
+
+  <button type="submit" class="btn btn-primary mt-3">Save</button>
+  <a href="{{ url_for('main_bp.dashboard') }}" class="btn btn-secondary mt-3">Cancel</a>
+</form>
+{% endblock %}
