@@ -34,15 +34,17 @@ class LoginForm(FlaskForm):
 def register():
     if current_user.is_authenticated:
         return redirect(url_for("main_bp.dashboard"))
-
+    
     form = RegistrationForm()
+    
     if form.validate_on_submit():
-        user = User(name=form.name.data, email=form.email.data)
-        user.set_password(form.password.data)
+        hashed_password = generate_password_hash(form.password.data)
+        user = User(name=form.name.data, email=form.email.data, password_hash=hashed_password)
         db.session.add(user)
         db.session.commit()
-print(f"✅ User created: {user.email}")
-flash("Your account has been created! You are now able to log in", "success")
+        flash("Your account has been created! You are now able to log in", "success")
+        return redirect(url_for("auth.login"))
+    
     return render_template("register.html", title="Register", form=form)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
