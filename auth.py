@@ -69,3 +69,7 @@ def logout():
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for("main_bp.index"))
+@auth_bp.route("/debug/users")
+def debug_users():
+    users = User.query.all()
+    return "<br>".join([f"{u.email} — {u.password_hash}" for u in users])
