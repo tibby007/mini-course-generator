@@ -55,7 +55,8 @@ def login():
             login_user(user, remember=form.remember_me.data)
             flash("Login successful!", "success")
             next_page = request.args.get("next")
-            return redirect(next_page) if next_page else redirect(url_for("main.dashboard"))
+            return redirect(next_page) if next_page else redirect(url_for("main_bp.dashboard"))
+
         else:
             flash("Login unsuccessful. Please check email and password", "danger")
     return render_template("login.html", title="Login", form=form)
