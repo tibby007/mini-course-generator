@@ -8,6 +8,14 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import uuid
+# ----- TEMPORARY: wipe stale SQLite file so the new schema can be created -----
+import os
+
+db_path = os.path.join(os.getcwd(), "instance", "minicourse.db")
+if os.path.exists(db_path):
+    print("• Removing old SQLite DB so we can recreate it with the new schema")
+    os.remove(db_path)
+# ----------------------------------------------------------------------------- 
 
 # Initialize extensions
 db = SQLAlchemy()
