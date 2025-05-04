@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Mini-Course Creator - Build Effective Mini-Courses Easily{% endblock %}
+
+{% block head_extra %}
+<style>
+/* Base styles from base.html might apply */
+
+/* Hero Section - Teal Gradient */
+.hero-section {
+    background: linear-gradient(to right, #0D9488, #0F766E); /* from-teal-600 to-teal-800 */
+    color: white;
+    padding: 4rem 0; /* py-16 */
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 2.5rem; /* text-4xl */
+    font-weight: bold; /* font-bold */
+    margin-bottom: 1.5rem; /* mb-6 */
+}
+
+@media (min-width: 768px) {
+    .hero-section h1 {
+        font-size: 3rem; /* md:text-5xl */
+    }
+    .hero-section {
+        padding: 6rem 0; /* md:py-24 */
+    }
+}
+
+.hero-section p {
+    font-size: 1.25rem; /* text-xl */
+    margin-bottom: 2.5rem; /* mb-10 */
+    color: #CCFBF1; /* text-teal-100 */
+}
+
+@media (min-width: 768px) {
+    .hero-section p {
+        font-size: 1.5rem; /* md:text-2xl */
+    }
+}
+
+.hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* gap-4 */
+    justify-content: center;
+    align-items: center;
+}
+
+@media (min-width: 640px) {
+    .hero-buttons {
+        flex-direction: row; /* sm:flex-row */
+    }
+}
+
+.hero-buttons .btn-primary {
+    background-color: #F97316; /* bg-orange-500 */
+    color: white;
+    font-weight: 600; /* font-semibold */
+    padding: 0.75rem 2rem; /* py-3 px-8 */
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+    transition: background-color 0.2s; /* transition duration-200 */
+    font-size: 1.125rem; /* text-lg */
+    border: none;
+}
+
+.hero-buttons .btn-primary:hover {
+    background-color: #EA580C; /* hover:bg-orange-600 */
+}
+
+.hero-buttons .btn-secondary {
+    background-color: transparent;
+    border: 2px solid white;
+    color: white;
+    font-weight: 600; /* font-semibold */
+    padding: 0.75rem 2rem; /* py-3 px-8 */
+    border-radius: 0.5rem; /* rounded-lg */
+    transition: background-color 0.2s, color 0.2s; /* transition duration-200 */
+    font-size: 1.125rem; /* text-lg */
+}
+
+.hero-buttons .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* hover:bg-white hover:bg-opacity-10 */
+}
+
+/* Features Section - Light Gradient Background */
+.features-section {
+    padding: 4rem 0; /* py-16 */
+    background: linear-gradient(to bottom right, #F0FDFA, #F9FAFB); /* from-teal-50 to-gray-100 */
+}
+
+@media (min-width: 768px) {
+    .features-section {
+        padding: 6rem 0; /* md:py-24 */
+    }
+}
+
+.features-section h2 {
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: bold; /* font-bold */
+    text-align: center;
+    color: #374151; /* text-gray-800 */
+    margin-bottom: 4rem; /* mb-16 */
+}
+
+@media (min-width: 768px) {
+    .features-section h2 {
+        font-size: 2.25rem; /* md:text-4xl */
+    }
+}
+
+.feature-grid {
+    display: grid;
+    gap: 2rem; /* gap-8 */
+}
+
+@media (min-width: 768px) {
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr); /* md:grid-cols-2 */
+    }
+}
+
+@media (min-width: 1024px) {
+    .feature-grid {
+        grid-template-columns: repeat(3, 1fr); /* lg:grid-cols-3 */
+    }
+}
+
+.feature-item {
+    background-color: white;
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+    padding: 1.5rem; /* p-6 */
+    transition: transform 0.3s; /* transition duration-300 */
+}
+
+.feature-item:hover {
+    transform: scale(1.05); /* hover:scale-105 */
+}
+
+.feature-icon-wrapper {
+    background-color: #CCFBF1; /* bg-teal-100 */
+    width: 3.5rem; /* w-14 */
+    height: 3.5rem; /* h-14 */
+    border-radius: 9999px; /* rounded-full */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem; /* mb-6 */
+    color: #0D9488; /* text-teal-600 */
+    font-size: 1.5rem; /* Adjust as needed for icon size */
+    font-weight: bold;
+}
+
+.feature-item h3 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: bold; /* font-bold */
+    margin-bottom: 0.75rem; /* mb-3 */
+    color: #374151; /* text-gray-800 */
+    margin-top: 0;
+}
+
+.feature-item p {
+    color: #6B7280; /* text-gray-600 */
+}
+
+/* CTA Section - Orange Background */
+.cta-section {
+    background-color: #F97316; /* bg-orange-500 */
+    color: white;
+    padding: 4rem 0; /* py-16 */
+    text-align: center;
+}
+
+.cta-section h2 {
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: bold; /* font-bold */
+    margin-bottom: 1.5rem; /* mb-6 */
+}
+
+.cta-section .btn-cta {
+    background-color: white;
+    color: #F97316; /* text-orange-500 */
+    font-weight: 600; /* font-semibold */
+    padding: 0.75rem 2rem; /* py-3 px-8 */
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+    transition: background-color 0.2s; /* transition duration-200 */
+    font-size: 1.125rem; /* text-lg */
+    border: none;
+}
+
+.cta-section .btn-cta:hover {
+    background-color: #F3F4F6; /* hover:bg-gray-100 */
+}
+
+/* Footer - Dark Gray */
+.footer-section {
+    background-color: #1F2937; /* bg-gray-800 */
+    color: white;
+    padding: 2rem 0; /* py-8 */
+    text-align: center;
+}
+
+.footer-section p {
+    margin-bottom: 1rem; /* mb-4 */
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem; /* space-x-6 */
+}
+
+.footer-links a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.2s; /* transition */
+}
+
+.footer-links a:hover {
+    color: #5EEAD4; /* hover:text-teal-300 */
+}
+
+/* Container utility */
+.container {
+    max-width: 1280px; /* Corresponds roughly to Tailwind's container */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <h1>Create Focused, Actionable Mini-Courses in Minutes</h1>
+        <p>The Mini-Course Creator guides you with built-in best practices to build effective learning experiences quickly.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('auth.register') }}" class="btn-primary">Get Started Now</a>
+            <a href="{{ url_for('auth.login') }}" class="btn-secondary">Login</a>
+        </div>
+    </div>
+</section>
+
+<section class="features-section">
+    <div class="container">
+        <h2>Why Use Mini-Course Creator?</h2>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <div class="feature-icon-wrapper">L</div> {# Placeholder for Layout icon #}
+                <h3>Guided Structure</h3>
+                <p>Follow a simple, step-by-step process from defining outcomes to adding content blocks.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon-wrapper">✓</div> {# Placeholder for CheckCircle icon #}
+                <h3>Best Practices Built-In</h3>
+                <p>Tooltips and prompts guide you towards hyper-specificity, audience awareness, and actionable content.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon-wrapper">P</div> {# Placeholder for PenTool icon #}
+                <h3>Flexible Content</h3>
+                <p>Easily add text, images, embed videos (YouTube/Vimeo), create simple quizzes, and include action steps.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon-wrapper">S</div> {# Placeholder for Share2 icon #}
+                <h3>Simple Sharing</h3>
+                <p>Generate a clean, mobile-responsive web link to share your completed mini-course instantly.</p>
+            </div>
+             <div class="feature-item">
+                <div class="feature-icon-wrapper">B</div> {# Placeholder for BookOpen icon #}
+                <h3>Focus on Learning</h3>
+                <p>Designed for creating concise, high-impact learning modules, not complex LMS features.</p>
+            </div>
+             <div class="feature-item">
+                <div class="feature-icon-wrapper">M</div> {# Placeholder for Monitor icon #}
+                <h3>Intuitive Interface</h3>
+                <p>Easy to use for creators of all technical skill levels. Get your course online fast.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2>Ready to build your first mini-course?</h2>
+        <a href="{{ url_for('auth.register') }}" class="btn-cta">Sign Up Free</a>
+    </div>
+</section>
+
+{% endblock %}
+
+{# Override footer from base.html if needed, or let base.html handle it #}
+{% block footer %}
+<footer class="footer-section">
+    <div class="container">
+        <p>© 2025 Mini-Course Creator. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="#">Terms</a>
+            <a href="#">Privacy</a>
+            <a href="#">Contact</a>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+

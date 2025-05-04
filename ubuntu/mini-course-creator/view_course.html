@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.title }} - Mini-Course{% endblock %}
+
+{% block head_extra %}
+<style>
+.view-layout {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.view-sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background-color: #f8f9fa; /* Light grey */
+    padding: 1rem;
+    border-radius: 5px;
+    height: fit-content; /* Adjust height based on content */
+    border: 1px solid #dee2e6;
+}
+
+.view-sidebar h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #0056b3; /* Blue */
+    border-bottom: 1px solid #ced4da;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.view-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.view-sidebar li {
+    margin-bottom: 0.5rem;
+}
+
+.view-sidebar a {
+    text-decoration: none;
+    color: #0056b3; /* Blue */
+    display: block;
+    padding: 0.5rem;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.view-sidebar a:hover {
+    background-color: #e9ecef;
+}
+
+.view-sidebar .module-title {
+    font-weight: bold;
+    margin-top: 1rem;
+    color: #343a40;
+}
+
+.view-sidebar .lesson-link {
+    padding-left: 1.5rem; /* Indent lessons */
+    font-size: 0.95em;
+}
+
+.view-sidebar .active-item a {
+    background-color: #0056b3; /* Blue */
+    color: white;
+}
+
+.view-content {
+    flex-grow: 1;
+    background-color: white;
+    padding: 1.5rem 2rem;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    min-height: 400px; /* Ensure content area has some height */
+}
+
+.view-content h1 {
+    margin-top: 0;
+    color: #0056b3; /* Blue */
+    border-bottom: 2px solid #ff9800; /* Orange */
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.view-content h2 {
+    color: #0056b3; /* Blue */
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.content-block-view {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+.content-block-view:last-child {
+    border-bottom: none;
+}
+
+.content-block-view img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+
+.content-block-view iframe {
+    max-width: 100%;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+    width: 100%; /* Default width */
+    height: auto;
+}
+
+/* Basic Quiz Styling */
+.quiz-block {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+.quiz-options label {
+    display: block;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
+.quiz-feedback {
+    margin-top: 10px;
+    font-weight: bold;
+}
+.quiz-feedback.correct {
+    color: green;
+}
+.quiz-feedback.incorrect {
+    color: red;
+}
+
+.course-navigation {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .view-layout {
+        flex-direction: column;
+    }
+    .view-sidebar {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    /* Consider using an accordion for sidebar on mobile */
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>{{ course.title }}</h1>
+<p><em>{{ course.description }}</em></p>
+
+<div class="view-layout">
+    <aside class="view-sidebar">
+        <h3>Course Content</h3>
+        <ul>
+            {# Link to Introduction #}
+            <li class="{% if current_item_type == 'intro' %}active-item{% endif %}">
+                <a href="{{ url_for("main.view_course", course_share_id=course.share_id, item_type='intro', item_id=course.id) }}">Introduction</a>
+            </li>
+
+            {# Loop through Modules and Lessons #}
+            {% for module in course.modules | sort(attribute='order') %}
+                <li class="module-title">{{ module.title }}</li>
+                <ul>
+                    {% for lesson in module.lessons | sort(attribute='order') %}
+                        <li class="{% if current_item_type == 'lesson' and current_item_id == lesson.id %}active-item{% endif %}">
+                            <a href="{{ url_for("main.view_course", course_share_id=course.share_id, item_type='lesson', item_id=lesson.id) }}" class="lesson-link">{{ lesson.title }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+
+            {# Link to Conclusion #}
+            <li class="{% if current_item_type == 'conclusion' %}active-item{% endif %}">
+                <a href="{{ url_for("main.view_course", course_share_id=course.share_id, item_type='conclusion', item_id=course.id) }}">Conclusion</a>
+            </li>
+        </ul>
+    </aside>
+
+    <section class="view-content">
+        {# Display content based on current_item_type and current_item #}
+        {% if current_item_type == 'intro' %}
+            <h2>Introduction</h2>
+            <div>{{ intro_content | safe }}</div> {# Direct HTML from Course model #}
+
+        {% elif current_item_type == 'lesson' and current_item %}
+            <h2>{{ current_item.title }}</h2>
+            {% for block in current_item.content_blocks | sort(attribute='order') %}
+                <div class="content-block-view" data-block-id="{{ block.id }}">
+                    {% if block.block_type == 'text' %}
+                        <div>{{ block.content.html | safe }}</div> {# Access 'html' key from JSON #}
+                    {% elif block.block_type == 'image' %}
+                        {% if block.content.url %}
+                            <img src="{{ block.content.url }}" alt="{{ block.content.alt or 'Course Image' }}">
+                        {% endif %}
+                    {% elif block.block_type == 'video' %}
+                        {% set video_url = block.content.url %}
+                        {% if video_url %}
+                            {% if 'youtube.com' in video_url or 'youtu.be' in video_url %}
+                                {% set video_id = video_url.split('/')[-1].split('?v=')[-1].split('&')[0] %}
+                                <iframe width="560" height="315" src="https://www.youtube.com/embed/{{ video_id }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                            {% elif 'vimeo.com' in video_url %}
+                                {% set video_id = video_url.split('/')[-1].split('?')[0] %}
+                                <iframe src="https://player.vimeo.com/video/{{ video_id }}" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                            {% else %}
+                                <p>Cannot embed video from: {{ video_url }} (Supports YouTube/Vimeo)</p>
+                            {% endif %}
+                        {% endif %}
+                    {% elif block.block_type == 'quiz' %}
+                        <div class="quiz-block">
+                            <p><strong>Quiz:</strong> {{ block.content.question }}</p>
+                            <form class="quiz-options" data-correct="{{ block.content.correct_answer }}">
+                                {% for option in block.content.options %}
+                                <label>
+                                    <input type="radio" name="quiz_{{ block.id }}" value="{{ loop.index0 }}">
+                                    {{ option }}
+                                </label>
+                                {% endfor %}
+                                <button type="button" class="btn btn-secondary btn-sm check-quiz-btn">Check Answer</button>
+                                <div class="quiz-feedback"></div>
+                            </form>
+                        </div>
+                    {% elif block.block_type == 'action' %}
+                        <div class="action-block">
+                            <strong>Action Step:</strong>
+                            <div>{{ block.content.html | safe }}</div> {# Access 'html' key from JSON #}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+        {% elif current_item_type == 'conclusion' %}
+            <h2>Conclusion</h2>
+            <div>{{ conclusion_content | safe }}</div> {# Direct HTML from Course model #}
+
+        {% else %}
+            {# Default view - show intro #}
+             <h2>Introduction</h2>
+            <div>{{ intro_content | safe }}</div>
+        {% endif %}
+
+        {# Basic Navigation (Uses URLs generated in the route) #}
+        <div class="course-navigation">
+            {% if prev_item_url %}
+                <a href="{{ prev_item_url }}" class="btn btn-secondary">&laquo; Previous</a>
+            {% else %}
+                <span></span> {# Placeholder to keep alignment #}
+            {% endif %}
+            {% if next_item_url %}
+                <a href="{{ next_item_url }}" class="btn btn-primary">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add basic quiz checking functionality
+    const quizForms = document.querySelectorAll('.quiz-options');
+    quizForms.forEach(form => {
+        const checkButton = form.querySelector('.check-quiz-btn');
+        const feedbackDiv = form.querySelector('.quiz-feedback');
+        const correctAnswerIndex = form.dataset.correct;
+
+        checkButton.addEventListener('click', () => {
+            const selectedOption = form.querySelector('input[type="radio"]:checked');
+            feedbackDiv.textContent = ''; // Clear previous feedback
+            feedbackDiv.className = 'quiz-feedback'; // Reset class
+
+            if (!selectedOption) {
+                feedbackDiv.textContent = 'Please select an answer.';
+                feedbackDiv.classList.add('incorrect');
+                return;
+            }
+
+            if (selectedOption.value == correctAnswerIndex) {
+                feedbackDiv.textContent = 'Correct!';
+                feedbackDiv.classList.add('correct');
+            } else {
+                feedbackDiv.textContent = 'Incorrect. Try again!';
+                feedbackDiv.classList.add('incorrect');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

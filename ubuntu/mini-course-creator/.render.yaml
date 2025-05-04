@@ -1,0 +1,14 @@
+# .render.yaml
+services:
+  - type: web
+    name: mini-course-generator
+    env: python
+    branch: main
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: |
+      gunicorn -b 0.0.0.0:$PORT main:app
+    plan: free
+    envVars:
+      - key: OPENAI_API_KEY
+        value: your-key-here

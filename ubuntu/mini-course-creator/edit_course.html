@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Course: {{ course.title if course else 'New Course' }} - Mini-Course Creator{% endblock %}
+
+{% block head_extra %}
+<!-- Include Quill stylesheet -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<style>
+/* [Existing styles remain unchanged] */
+.editor-layout {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.structure-panel {
+    width: 250px;
+    flex-shrink: 0;
+    background-color: #e9ecef; /* Light grey */
+    padding: 1rem;
+    border-radius: 5px;
+    height: fit-content; /* Adjust height based on content */
+}
+
+.structure-panel h3 {
+    margin-top: 0;
+    color: #0056b3; /* Blue */
+    border-bottom: 1px solid #ced4da;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.structure-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.structure-panel li {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.structure-panel li.active {
+    background-color: #0056b3; /* Blue */
+    color: white;
+    border-color: #004085;
+}
+
+.structure-panel li ul {
+    margin-top: 0.5rem;
+    margin-left: 1rem; /* Indent lessons */
+}
+
+.structure-panel .actions {
+    display: flex;
+    gap: 5px;
+}
+
+.structure-panel .actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 2px;
+    color: #6c757d;
+}
+.structure-panel li.active .actions button {
+    color: white;
+}
+
+.structure-panel .actions button:hover {
+    color: #0056b3; /* Blue */
+}
+
+.structure-panel li.active .actions button:hover {
+    color: #ff9800; /* Orange */
+}
+
+.editor-panel {
+    flex-grow: 1;
+    background-color: white;
+    padding: 1.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.editor-panel h3 {
+    margin-top: 0;
+    color: #0056b3; /* Blue */
+}
+
+.content-block {
+    border: 1px dashed #ced4da;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.content-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #495057;
+}
+
+/* Quill Editor Styling */
+.ql-editor {
+    min-height: 150px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 0.5rem;
+    background-color: white;
+}
+.ql-toolbar {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom: 0;
+}
+
+.editor-actions {
+    margin-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+    padding-top: 1rem;
+    text-align: right;
+}
+
+.editor-actions .btn {
+    margin-left: 0.5rem;
+}
+
+.block-editor {
+    margin-top: 10px;
+}
+
+.quiz-options-editor label {
+    display: block;
+    margin-bottom: 5px;
+}
+.quiz-options-editor input[type="text"] {
+    width: calc(100% - 60px);
+    margin-right: 5px;
+}
+.quiz-options-editor button {
+    margin-left: 5px;
+}
+
+/* AI related styles */
+.ai-suggestion {
+    font-size: 0.9em;
+    color: #0056b3; /* Blue */
+    background-color: #e7f3ff;
+    border: 1px solid #b3d7ff;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border-radius: 4px;
+    display: none; /* Hidden by default */
+}
+.ai-btn {
+    margin-left: 10px;
+    font-size: 0.8em;
+    padding: 2px 5px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="POST" id="course-form" action="{{ url_for('editor.edit_course', course_id=course.id) }}">
+    {{ form.hidden_tag() }}
+    <div class="editor-actions top-actions">
+        <a href="{{ url_for("main.dashboard") }}" class="btn btn-secondary">Back to Dashboard</a>
+        <a href="{{ url_for('main.view_course', course_share_id=course.share_id) }}" class="btn btn-secondary" id="preview-btn" target="_blank">Preview</a>
+        {# Save Settings button remains for Title, Desc, Outcome, Audience #}
+        {# <button type="submit" class="btn btn-primary">Save Settings</button> #} 
+    </div>
+
+    <div class="editor-layout">
+        <div class="structure-panel" id="structure-panel">
+            <h3>Course Structure</h3>
+            <ul>
+                <li data-type="course" data-id="{{ course.id }}" class="active">Course Settings</li>
+                <li data-type="intro" data-id="{{ course.id }}">Introduction</li>
+            </ul>
+
+            <button type="button" class="btn btn-secondary btn-sm" id="add-module-btn">+ Add Module</button>
+
+            <ul id="module-list">
+                {% for module in course.modules | sort(attribute='order') %}
+                <li data-type="module" data-id="{{ module.id }}" data-order="{{ module.order }}">
+                    <span class="item-title">{{ module.title }}</span>
+                    <div class="actions">
+                        <button type="button" class="move-up" title="Move Up">&#9650;</button>
+                        <button type="button" class="move-down" title="Move Down">&#9660;</button>
+                        <button type="button" class="delete-item" title="Delete Module">&times;</button>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-xs add-lesson-btn" data-module-id="{{ module.id }}">+ Add Lesson</button>
+                    <ul class="lesson-list" data-module-id="{{ module.id }}">
+                        {% for lesson in module.lessons | sort(attribute='order') %}
+                        <li data-type="lesson" data-id="{{ lesson.id }}" data-order="{{ lesson.order }}">
+                            <span class="item-title">{{ lesson.title }}</span>
+                            <div class="actions">
+                                <button type="button" class="move-up" title="Move Up">&#9650;</button>
+                                <button type="button" class="move-down" title="Move Down">&#9660;</button>
+                                <button type="button" class="delete-item" title="Delete Lesson">&times;</button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endfor %}
+            </ul>
+             <ul>
+                <li data-type="conclusion" data-id="{{ course.id }}">Conclusion</li>
+            </ul>
+        </div>
+
+        <div class="editor-panel" id="editor-panel">
+            {# Initial view: Course Settings #}
+            <div id="course-settings-view">
+                <h3>Course Settings</h3>
+                <div class="form-group">
+                    {{ form.title.label }} {{ form.title(class_="form-control", id="course-title") }}
+                    <button type="button" class="btn btn-info btn-sm ai-btn" id="ai-suggest-structure-btn" title="Suggest course structure based on title">✨ AI Suggest Structure</button>
+                    <div class="ai-suggestion" id="ai-structure-suggestion"></div>
+                </div>
+                <div class="form-group">
+                    {{ form.description.label }} {{ form.description(class_="form-control", id="course-description") }}
+                </div>
+                <div class="form-group">
+                    {{ form.outcome.label }}
+                    <span class="tooltip-container" data-concept="bp1_specificity"> {# Added data-concept for popup #}
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltip-text">Best Practice #1: Define one specific, actionable learning outcome. What will the learner be able to DO after this course?</span>
+                    </span>
+                    {{ form.outcome(class_="form-control", required=True, id="course-outcome") }}
+                    <button type="button" class="btn btn-info btn-sm ai-btn" id="ai-analyze-outcome-btn" title="Analyze outcome for specificity">💡 AI Analyze</button>
+                    <div class="ai-suggestion" id="ai-outcome-suggestion"></div>
+                </div>
+                <div class="form-group">
+                    {{ form.audience.label }}
+                     <span class="tooltip-container" data-concept="bp2_audience"> {# Added data-concept for popup #}
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltip-text">Best Practice #2: Describe your target learner. What do they already know? What is their goal?</span>
+                    </span>
+                    {{ form.audience(class_="form-control", id="course-audience") }}
+                    <button type="button" class="btn btn-info btn-sm ai-btn" id="ai-analyze-audience-btn" title="Analyze audience description">💡 AI Analyze</button>
+                    <div class="ai-suggestion" id="ai-audience-suggestion"></div>
+                </div>
+                 <button type="button" class="btn btn-primary save-settings-btn">Save Settings</button> {# Changed from type=submit to type=button #}
+            </div>
+
+            {# Intro View #}
+            <div id="intro-view" style="display: none;">
+                 <h3>Introduction
+                    <span class="tooltip-container" data-concept="bp7_intro"> {# Added data-concept for popup #}
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltip-text">Best Practice #7: Set the context. Briefly explain what the course covers, why it's important, and state the learning outcome.</span>
+                    </span>
+                </h3>
+                <div class="form-group">
+                    <label>Introduction Content</label>
+                    <div id="intro-content-editor"></div> {# Quill editor container #}
+                    {# AI Generate button could be added near the editor #}
+                </div>
+                <button type="button" class="btn btn-primary save-intro-btn">Save Introduction</button>
+            </div>
+
+            {# Module View #}
+            <div id="module-view" style="display: none;">
+                <h3>Edit Module</h3>
+                <div class="form-group">
+                    <label>Module Title</label>
+                    <input type="text" name="module_title" class="form-control">
+                    <input type="hidden" name="current_module_id">
+                </div>
+                 <button type="button" class="btn btn-primary save-module-btn">Save Module Title</button>
+            </div>
+
+            {# Lesson View #}
+            <div id="lesson-view" style="display: none;">
+                <h3>Edit Lesson</h3>
+                 <div class="form-group">
+                    <label>Lesson Title</label>
+                    <input type="text" name="lesson_title" id="lesson-title-input" class="form-control"> {# Added ID #}
+                    <input type="hidden" name="current_lesson_id">
+                 </div>
+                 <button type="button" class="btn btn-primary save-lesson-btn">Save Lesson Title</button>
+                <hr>
+                <h4>Lesson Content Blocks</h4>
+                 <div id="content-blocks-area">
+                    {# Content blocks will be loaded/added here via JS. 
+                       AI buttons (Generate Text, Generate Quiz, Suggest Image) will be added dynamically 
+                       within each block template in editor.js #}
+                 </div>
+                 <div class="add-block-controls">
+                    <select id="add-block-type">
+                        <option value="text">Text</option>
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                        <option value="quiz">Quiz (MC/TF)</option>
+                        <option value="action">Action Step/Resource</option>
+                    </select>
+                    <button type="button" class="btn btn-secondary btn-sm" id="add-content-block-btn">+ Add Block</button>
+                    <span class="tooltip-container" data-concept="bp3_bite_sized"> {# Added data-concept for popup #}
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltip-text">BP#3: Keep content bite-sized. BP#4: Include action steps. BP#5: Add quizzes. BP#6: Use varied media.</span>
+                    </span>
+                 </div>
+            </div>
+
+             {# Conclusion View #}
+             <div id="conclusion-view" style="display: none;">
+                 <h3>Conclusion
+                    <span class="tooltip-container" data-concept="bp8_conclusion"> {# Added data-concept for popup #}
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltip-text">Best Practice #8: Summarize key takeaways, reiterate the outcome, suggest next steps, and include a call to action.</span>
+                    </span>
+                </h3>
+                <div class="form-group">
+                    <label>Conclusion Content</label>
+                    <div id="conclusion-content-editor"></div> {# Quill editor container #}
+                    {# AI Generate button could be added near the editor #}
+                </div>
+                 <button type="button" class="btn btn-primary save-conclusion-btn">Save Conclusion</button>
+            </div>
+
+        </div> {# End editor-panel #}
+    </div> {# End editor-layout #}
+</form>
+
+{# Modal for AI Popups - Simple Bootstrap-like structure #}
+<div id="ai-popup-modal" class="modal" tabindex="-1" role="dialog" style="display: none;">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">AI Explanation</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="ai-popup-content">
+        <p>Loading explanation...</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+/* Basic Modal Styles (adapt/replace with Bootstrap if used) */
+.modal {
+  position: fixed; top: 0; left: 0; z-index: 1050; width: 100%; height: 100%; overflow: hidden; outline: 0; background-color: rgba(0,0,0,0.5);
+}
+.modal-dialog { position: relative; width: auto; margin: 1.75rem auto; max-width: 500px; }
+.modal-content { position: relative; display: flex; flex-direction: column; width: 100%; pointer-events: auto; background-color: #fff; background-clip: padding-box; border: 1px solid rgba(0,0,0,.2); border-radius: .3rem; outline: 0; }
+.modal-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 1rem 1rem; border-bottom: 1px solid #dee2e6; border-top-left-radius: calc(.3rem - 1px); border-top-right-radius: calc(.3rem - 1px); }
+.modal-title { margin-bottom: 0; line-height: 1.5; }
+.close { float: right; font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff; opacity: .5; background-color: transparent; border: 0; padding: 1rem 1rem; margin: -1rem -1rem -1rem auto; }
+.modal-body { position: relative; flex: 1 1 auto; padding: 1rem; }
+.modal-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; padding: .75rem; border-top: 1px solid #dee2e6; border-bottom-right-radius: calc(.3rem - 1px); border-bottom-left-radius: calc(.3rem - 1px); }
+.modal-footer > * { margin: .25rem; }
+</style>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<!-- Include Quill library -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<!-- Include the editor-specific JS -->
+<script src="{{ url_for('static', filename='editor.js') }}"></script> {# Ensure correct path #}
+<!-- Include the AI interaction JS -->
+<script src="{{ url_for('static', filename='ai_interactions.js') }}"></script> {# Ensure correct path #}
+{% endblock %}
+
