@@ -19,8 +19,9 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField("Register")
 
     def validate_email(self, email):
-        if User.query.filter_by(email=email.data).first():
-            raise ValidationError("That email is already taken. Please use a different one.")
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError("That email is already taken. Please choose a different one.")
 
 class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
@@ -28,15 +29,12 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField("Remember Me")
     submit = SubmitField("Login")
 
-
 # ----- Routes -----
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("main_bp.dashboard"))
-    
+        return redirect(url_for("main.dashboard"))
     form = RegistrationForm()
-    
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data)
         user = User(name=form.name.data, email=form.email.data, password_hash=hashed_password)
@@ -44,24 +42,22 @@ def register():
         db.session.commit()
         flash("Your account has been created! You are now able to log in", "success")
         return redirect(url_for("auth.login"))
-    
     return render_template("register.html", title="Register", form=form)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main_bp.dashboard"))
-
+        return redirect(url_for("main.dashboard"))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):
+        if user and check_password_hash(user.password_hash, form.password.data):
             login_user(user, remember=form.remember_me.data)
-            next_page = request.args.get("next")
             flash("Login successful!", "success")
-            return redirect(next_page) if next_page else redirect(url_for("main_bp.dashboard"))
-        flash("Invalid email or password.", "danger")
-
+            next_page = request.args.get("next")
+            return redirect(next_page) if next_page else redirect(url_for("main.dashboard"))
+        else:
+            flash("Login unsuccessful. Please check email and password", "danger")
     return render_template("login.html", title="Login", form=form)
 
 @auth_bp.route("/logout")
@@ -69,8 +65,4 @@ def login():
 def logout():
     logout_user()
     flash("You have been logged out.", "info")
-    return redirect(url_for("main_bp.index"))
-@auth_bp.route("/debug/users")
-def debug_users():
-    users = User.query.all()
-    return "<br>".join([f"{u.email} — {u.password_hash}" for u in users])
+    return redirect(url_for("main.index"))
