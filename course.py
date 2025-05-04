@@ -79,12 +79,11 @@ class Lesson(db.Model):
 
 
 class ContentBlock(db.Model):
-    """
-    A single chunk inside a lesson: text, image, quiz, etc.
-    `type`   holds something like 'markdown', 'image', 'code', 'quiz'.
-    `data`   is JSON/text that the frontend/editor interprets.
-    """
     __tablename__ = "content_block"
 
-    id        = db.Column(db.Integer, primary_key=_
+    id        = db.Column(db.Integer, primary_key=True)      # ← complete line
+    lesson_id = db.Column(db.Integer, db.ForeignKey("lesson.id"), nullable=False)
+    type      = db.Column(db.String(32),  nullable=False)
+    data      = db.Column(db.Text,        nullable=False)
+    position  = db.Column(db.Integer,     nullable=False)
 
