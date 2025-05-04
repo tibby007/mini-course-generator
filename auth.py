@@ -33,7 +33,7 @@ class RegistrationForm(FlaskForm):
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("main.dashboard"))
+       return redirect(url_for("main_bp.dashboard"))
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data)
