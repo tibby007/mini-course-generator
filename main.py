@@ -45,7 +45,8 @@ def create_app():
     # Import models here to ensure they are registered with SQLAlchemy
     # Import models directly from root
     from user import User
-    from course import Course, Module, Lesson, ContentBlock
+    from course import Course   # only Course exists now
+
 
     @login_manager.user_loader
     def load_user(user_id):
