@@ -41,9 +41,8 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash("Account created! You can now log in.", "success")
-        return redirect(url_for("auth.login"))
-
+print(f"✅ User created: {user.email}")
+flash("Your account has been created! You are now able to log in", "success")
     return render_template("register.html", title="Register", form=form)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
