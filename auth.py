@@ -47,7 +47,7 @@ def register():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("main_bp.dashboard"))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -65,5 +65,5 @@ def login():
 def logout():
     logout_user()
     flash("You have been logged out.", "info")
-    return redirect(url_for("main.dashboard"))
+    return redirect(url_for("main_bp.dashboard"))
 
